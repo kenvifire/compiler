@@ -84,6 +84,9 @@ f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
 [Nn][Ee][Ww]         { return NEW; }
 [Ii][Ss][Vv][Oo][Ii][Dd] {return ISVOID;}
 <-	             { return ASSIGN; }
+~                    { return NOT; }
+<=		     { return LE;  }
+
 [Cc][Ll][Aa][Ss][Ss] { return CLASS; }
 
 
