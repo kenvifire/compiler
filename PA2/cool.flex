@@ -67,6 +67,29 @@ DARROW          =>
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
+t[Rr][Uu][Ee]        { yylval.boolean=1; return BOOL_CONST; }
+f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
+[Ff][Ii]	     { return FI; }
+[iI][fF]	     { return IF; }
+[iI][nN]	     { return IN; }
+[Ii][Nn][Hh][Ee][Rr][Ii][Tt][Ss]  { return INHERITS;}
+[Ll][Ee][Tt]         { return LET; }
+[Ll][Oo][Oo][Pp]     { return LOOP; }
+[Pp][Oo][Oo][Ll]     { return POOL; }
+[Tt][Hh][Ee][Nn]     { return THEN; }
+[Ww][Hh][Ii][Ll][Ee] { return WHILE; }
+[Cc][Aa][Ss][Ee]     { return CASE; }
+[Ee][Ss][Aa][Cc]     { return ESAC; }
+[Oo][Ff]             { return OF; }
+[Nn][Ee][Ww]         { return NEW; }
+[Ii][Ss][Vv][Oo][Ii][Dd] {return ISVOID;}
+<-	             { return ASSIGN; }
+[Cc][Ll][Aa][Ss][Ss] { return CLASS; }
+
+
+
+
+
 
 
  /*
