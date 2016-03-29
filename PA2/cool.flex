@@ -93,29 +93,42 @@ f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
 \<-	             { return ASSIGN; }
 [Nn][Oo][Tt]         { return NOT; }
 {LE}		     { return LE;  }
+[Ee][Ll][Ss][Ee]     { return ELSE; }
 
 
 [Cc][Ll][Aa][Ss][Ss] { return CLASS; }
 
 {SPACE}
 
-"."                  { return "."; }
-"@"                  { return "@"; } 
-'~"                  { return "~"; }
-"+"                  { return "+"; }
-"-"                  { return "-"; }
-"*"                  { return "*"; }
-"/"                  { return "/"; }
+"."                  { return '.'; }
+"@"                  { return '@'; } 
+"~"                  { return '~'; }
+"+"                  { return '+'; }
+"-"                  { return '-'; }
+"*"                  { return '*'; }
+"/"                  { return '/'; }
 
 
-{DIGIT}+             { return INT_CONST; }
+{DIGIT}+             { 
+			cool_yylval.symbol=inttable.add_string(yytext);
+			return INT_CONST; 
+		     }
 self                 { return OBJECTID; }
 SELF_TYPE            { return TYPEID; }
-[a-z]{LETTER}*       { return OBJECTID; }
+[a-z]{LETTER}*       { cool_yylval.symbol=idtable.add_string(yytext); 
+			return OBJECTID;
+		     }
+[A-Z]{LETTER}*       { cool_yylval.symbol=idtable.add_string(yytext);
+			return TYPEID;
+		     }
+
+{NEWLINE}            { curr_lineno++; }
 
 
-
-
+.  		    {
+			cool_yylval.error_msg=yytext;
+			return ERROR;
+		    }
 
 
 
