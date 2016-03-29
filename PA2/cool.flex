@@ -51,6 +51,13 @@ extern YYSTYPE cool_yylval;
 
 DARROW          =>
 
+LE             <=
+ASSIGN         <-
+DIGIT          [0-9]
+LETTER         [a-zA-Z:_]
+SPACE          [ \t\f\r]
+NEWLINE        [\n]
+
 %%
 
  /*
@@ -83,11 +90,28 @@ f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
 [Oo][Ff]             { return OF; }
 [Nn][Ee][Ww]         { return NEW; }
 [Ii][Ss][Vv][Oo][Ii][Dd] {return ISVOID;}
-<-	             { return ASSIGN; }
-~                    { return NOT; }
-<=		     { return LE;  }
+\<-	             { return ASSIGN; }
+[Nn][Oo][Tt]         { return NOT; }
+{LE}		     { return LE;  }
+
 
 [Cc][Ll][Aa][Ss][Ss] { return CLASS; }
+
+{SPACE}
+
+"."                  { return "."; }
+"@"                  { return "@"; } 
+'~"                  { return "~"; }
+"+"                  { return "+"; }
+"-"                  { return "-"; }
+"*"                  { return "*"; }
+"/"                  { return "/"; }
+
+
+{DIGIT}+             { return INT_CONST; }
+self                 { return OBJECTID; }
+SELF_TYPE            { return TYPEID; }
+[a-z]{LETTER}*       { return OBJECTID; }
 
 
 
