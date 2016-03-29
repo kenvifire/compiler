@@ -45,6 +45,7 @@ extern YYSTYPE cool_yylval;
 
 %}
 
+%s MULTILINECOMMENT
 /*
  * Define names for regular expressions here.
  */
@@ -57,6 +58,7 @@ DIGIT          [0-9]
 LETTER         [a-zA-Z:_]
 SPACE          [ \t\f\r]
 NEWLINE        [\n]
+LETTERDIGIT    [a-zA-Z0-9:_]
 
 %%
 
@@ -74,6 +76,8 @@ NEWLINE        [\n]
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
   */
+
+
 t[Rr][Uu][Ee]        { yylval.boolean=1; return BOOL_CONST; }
 f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
 [Ff][Ii]	     { return FI; }
@@ -107,6 +111,7 @@ f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
 "-"                  { return '-'; }
 "*"                  { return '*'; }
 "/"                  { return '/'; }
+";"		     { return ';'; }
 
 
 {DIGIT}+             { 
@@ -115,20 +120,29 @@ f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
 		     }
 self                 { return OBJECTID; }
 SELF_TYPE            { return TYPEID; }
-[a-z]{LETTER}*       { cool_yylval.symbol=idtable.add_string(yytext); 
+
+
+[a-z]{LETTERDIGIT}*       { cool_yylval.symbol=idtable.add_string(yytext); 
 			return OBJECTID;
 		     }
-[A-Z]{LETTER}*       { cool_yylval.symbol=idtable.add_string(yytext);
+[A-Z]{LETTERDIGIT}*       { cool_yylval.symbol=idtable.add_string(yytext);
 			return TYPEID;
 		     }
 
 {NEWLINE}            { curr_lineno++; }
 
+"(*"                 { BEGIN(MULTILINECOMMENT); }
+
+<MULTILINECOMMENT>[^*\n]*"*)"  { BEGIN(INITIAL); }
+<MULTILINECOMMENT>{NEWLINE} {curr_lineno++;}
+
+"--"[^\n]*          {}
 
 .  		    {
 			cool_yylval.error_msg=yytext;
 			return ERROR;
 		    }
+
 
 
 
