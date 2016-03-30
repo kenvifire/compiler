@@ -173,7 +173,7 @@ SELF_TYPE            { return TYPEID; }
 		*string_buf_ptr++;
 	    }
 <STRING>[^\"\\]$ {
-		printf("reach end of string with line return\n");
+		//printf("reach end of string with line return\n");
 		cool_yylval.error_msg="Unterminated string constant";
 		curr_lineno++;
                 BEGIN(INITIAL);
