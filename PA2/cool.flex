@@ -168,6 +168,17 @@ SELF_TYPE            { return TYPEID; }
 				cool_yylval.symbol = stringtable.add_string(str);
 				return STR_CONST;
 				}
+<STRING>\\n {
+		*string_buf_ptr='\n';
+		*string_buf_ptr++;
+	    }
+<STRING>[^\"\\]$ {
+		printf("reach end of string with line return\n");
+		cool_yylval.error_msg="Unterminated string constant";
+		curr_lineno++;
+                BEGIN(INITIAL);
+		return ERROR;
+		}
 <STRING>\\\n    { 
 			*string_buf_ptr='\n';
 			 string_buf_ptr++;
@@ -185,11 +196,6 @@ SELF_TYPE            { return TYPEID; }
                           string_buf_ptr++;
 			}
 
-<STRING>\\n  {
-		*string_buf_ptr='\n';
-                string_buf_ptr++;
-		curr_lineno++;
-	    }
 <STRING>\\b  {
 		*string_buf_ptr='\b';
                 string_buf_ptr++;
@@ -203,11 +209,19 @@ SELF_TYPE            { return TYPEID; }
                 string_buf_ptr++;
 	    }
 
+
+
 <STRING>[^"\\\n\t\b\f]* {
 			    //printf("string no escape:%s\n",yytext);
 			     strcpy(string_buf_ptr,yytext);
 			     string_buf_ptr+=yyleng;   
 			}
+<STRING>\n    {
+		cool_yylval.error_msg="Unterminated string constant";
+		curr_lineno++;
+                BEGIN(INITIAL);
+		return ERROR;
+		}
 
 
 .  		    {
