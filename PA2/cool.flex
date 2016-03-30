@@ -46,6 +46,7 @@ extern YYSTYPE cool_yylval;
 %}
 
 %s MULTILINECOMMENT
+%x STRING
 /*
  * Define names for regular expressions here.
  */
@@ -112,6 +113,8 @@ f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
 "*"                  { return '*'; }
 "/"                  { return '/'; }
 ";"		     { return ';'; }
+"("                  { return '('; }
+")"                  { return ')'; }
 
 
 {DIGIT}+             { 
@@ -133,15 +136,15 @@ SELF_TYPE            { return TYPEID; }
 
 "(*"                 { BEGIN(MULTILINECOMMENT); }
 
-<MULTILINECOMMENT>[^*\n]*"*)"  { BEGIN(INITIAL); }
+<MULTILINECOMMENT>[^*]*"*)"  { BEGIN(INITIAL); }
 <MULTILINECOMMENT>{NEWLINE} {curr_lineno++;}
 
-"--"[^\n]*          {}
-
-.  		    {
-			cool_yylval.error_msg=yytext;
+"*)"                 { cool_yylval.error_msg="Unmatched *)";
 			return ERROR;
-		    }
+		     }
+
+
+"--"[^\n]*          {}
 
 
 
@@ -152,6 +155,66 @@ SELF_TYPE            { return TYPEID; }
   *  \n \t \b \f, the result is c.
   *
   */
+
+\"        {    BEGIN(STRING); string_buf_ptr=string_buf; }
+<STRING>"\"" 		{
+				//printf("--end str---,%s\n", string_buf);
+				BEGIN(INITIAL);
+				int length = string_buf_ptr-string_buf; 
+				char* str = new char[length+1];
+				string_buf[length]='\0';
+				strcpy(str, string_buf);
+				//printf("--end str after copy---,%s\n", str);
+				cool_yylval.symbol = stringtable.add_string(str);
+				return STR_CONST;
+				}
+<STRING>\\\n    { 
+			*string_buf_ptr='\n';
+			 string_buf_ptr++;
+	
+		}
+
+<STRING>\\[^\\ntbf]   {   
+			//	printf("string with escape:%s\n",yytext);
+				*string_buf_ptr=(char)(*(yytext+1)); 
+				string_buf_ptr++; 
+			} 
+<STRING>"\\"   { 
+
+			 *string_buf_ptr='\\';
+                          string_buf_ptr++;
+			}
+
+<STRING>\\n  {
+		*string_buf_ptr='\n';
+                string_buf_ptr++;
+		curr_lineno++;
+	    }
+<STRING>\\b  {
+		*string_buf_ptr='\b';
+                string_buf_ptr++;
+	    }
+<STRING>\\f  {
+		*string_buf_ptr='\f';
+                string_buf_ptr++;
+	    }
+<STRING>\\t  {
+		*string_buf_ptr='\t';
+                string_buf_ptr++;
+	    }
+
+<STRING>[^"\\\n\t\b\f]* {
+			    //printf("string no escape:%s\n",yytext);
+			     strcpy(string_buf_ptr,yytext);
+			     string_buf_ptr+=yyleng;   
+			}
+
+
+.  		    {
+			cool_yylval.error_msg=yytext;
+			return ERROR;
+		    }
+
 
 
 %%
