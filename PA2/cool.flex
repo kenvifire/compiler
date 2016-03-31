@@ -156,7 +156,7 @@ SELF_TYPE            { return TYPEID; }
   *
   */
 
-\"        {    BEGIN(STRING); string_buf_ptr=string_buf; }
+\"        		{    BEGIN(STRING); string_buf_ptr=string_buf; }
 <STRING>"\"" 		{
 				//printf("--end str---,%s\n", string_buf);
 				BEGIN(INITIAL);
@@ -179,9 +179,14 @@ SELF_TYPE            { return TYPEID; }
                 BEGIN(INITIAL);
 		return ERROR;
 		}
+<STRING>"\\\\"   { 
+			 *string_buf_ptr='\\';
+                          string_buf_ptr++;
+			}
 <STRING>\\\n    { 
 			*string_buf_ptr='\n';
 			 string_buf_ptr++;
+			curr_lineno++;
 	
 		}
 
@@ -190,11 +195,6 @@ SELF_TYPE            { return TYPEID; }
 				*string_buf_ptr=(char)(*(yytext+1)); 
 				string_buf_ptr++; 
 			} 
-<STRING>"\\"   { 
-
-			 *string_buf_ptr='\\';
-                          string_buf_ptr++;
-			}
 
 <STRING>\\b  {
 		*string_buf_ptr='\b';
@@ -217,9 +217,15 @@ SELF_TYPE            { return TYPEID; }
 			     string_buf_ptr+=yyleng;   
 			}
 <STRING>\n    {
+		//printf("end of string with error\n");
 		cool_yylval.error_msg="Unterminated string constant";
 		curr_lineno++;
                 BEGIN(INITIAL);
+		return ERROR;
+		}
+<STRING><<EOF>>  {
+		cool_yylval.error_msg="EOF in string constant";
+		BEGIN(INITIAL);
 		return ERROR;
 		}
 
