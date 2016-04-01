@@ -158,16 +158,30 @@ SELF_TYPE            { return TYPEID; }
 
 \"        		{    BEGIN(STRING); string_buf_ptr=string_buf; }
 <STRING>"\"" 		{
-				//printf("--end str---,%s\n", string_buf);
 				BEGIN(INITIAL);
 				int length = string_buf_ptr-string_buf; 
 				char* str = new char[length+1];
 				string_buf[length]='\0';
-				strcpy(str, string_buf);
-				//printf("--end str after copy---,%s\n", str);
+				strncpy(str, string_buf,length);
+				if(length>strlen(str)){
+					BEGIN(INITIAL);
+					cool_yylval.error_msg="null in string.";
+					return ERROR;
+				}
+				
+                                if(length>=MAX_STR_CONST) {
+					BEGIN(INITIAL);
+					cool_yylval.error_msg="String constant too long";
+					return ERROR;
+				}
 				cool_yylval.symbol = stringtable.add_string(str);
 				return STR_CONST;
 				}
+<STRING>\0           {
+			    cool_yylval.error_msg="String contains null character.";
+		            BEGIN(INITIAL);
+			    return ERROR;	
+		       } 
 <STRING>\\n {
 		*string_buf_ptr='\n';
 		*string_buf_ptr++;
@@ -213,7 +227,8 @@ SELF_TYPE            { return TYPEID; }
 
 <STRING>[^"\\\n\t\b\f]* {
 			    //printf("string no escape:%s\n",yytext);
-			     strcpy(string_buf_ptr,yytext);
+			     
+			     strncpy(string_buf_ptr,yytext,yyleng);
 			     string_buf_ptr+=yyleng;   
 			}
 <STRING>\n    {
@@ -223,6 +238,7 @@ SELF_TYPE            { return TYPEID; }
                 BEGIN(INITIAL);
 		return ERROR;
 		}
+
 <STRING><<EOF>>  {
 		cool_yylval.error_msg="EOF in string constant";
 		BEGIN(INITIAL);
