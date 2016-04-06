@@ -19,6 +19,7 @@
 /* Max size of string constants */
 #define MAX_STR_CONST 1025
 #define YY_NO_UNPUT   /* keep g++ happy */
+#define MAX_STACK_SIZE 1025
 
 extern FILE *fin; /* we read from this file */
 
@@ -34,6 +35,19 @@ extern FILE *fin; /* we read from this file */
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
 char *string_buf_ptr;
 
+char state_stack[MAX_STACK_SIZE];
+int stack_top=0;
+
+int yy_push_state(int state) {
+	state_stack[stack_top++]=state;
+}
+
+void yy_pop_state() {
+	int state = state_stack[--stack_top];
+	BEGIN(state);
+}
+
+
 extern int curr_lineno;
 extern int verbose_flag;
 
@@ -45,7 +59,7 @@ extern YYSTYPE cool_yylval;
 
 %}
 
-%s MULTILINECOMMENT
+%x MULTILINECOMMENT
 %x STRING
 /*
  * Define names for regular expressions here.
@@ -133,12 +147,24 @@ SELF_TYPE            { return TYPEID; }
 
 {NEWLINE}            { curr_lineno++; }
 
-"(*"                 { BEGIN(MULTILINECOMMENT); }
+\(\*                 {	
+			yy_push_state(INITIAL);
+			BEGIN(MULTILINECOMMENT); 
+		     }
 
-<MULTILINECOMMENT>[^*]*"*)"  { BEGIN(INITIAL); }
+<MULTILINECOMMENT>[^\(]*\(\* {
+				yy_push_state(MULTILINECOMMENT);
+				BEGIN(MULTILINECOMMENT);
+			}
+
+<MULTILINECOMMENT>[^\*]*\*\)  {	
+			      	//printf("--->%s<---\n",yytext); 	
+				yy_pop_state(); 
+				}
 <MULTILINECOMMENT>{NEWLINE} {curr_lineno++;}
 
 "*)"                 { cool_yylval.error_msg="Unmatched *)";
+			yy_pop_state();	
 			return ERROR;
 		     }
 
