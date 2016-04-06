@@ -67,7 +67,6 @@ LETTERDIGIT    [a-zA-Z0-9:_]
   *  Nested comments
   */
 
-
  /*
   *  The multiple-character operators.
   */
@@ -222,7 +221,15 @@ SELF_TYPE            { return TYPEID; }
 		*string_buf_ptr='\t';
                 string_buf_ptr++;
 	    }
+<STRING>\t { 
+	*string_buf_ptr='\t';
+	string_buf_ptr++;
+}
 
+<STRING>\f {
+	*string_buf_ptr='\f';
+	string_buf_ptr++;
+}
 
 
 <STRING>[^"\\\n\t\b\f]* {
