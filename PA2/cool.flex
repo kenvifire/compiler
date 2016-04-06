@@ -71,9 +71,9 @@ LE             <=
 ASSIGN         <-
 DIGIT          [0-9]
 LETTER         [a-zA-Z:_]
-SPACE          [ \t\f\r]
+SPACE          [ \t\f\r\013]
 NEWLINE        [\n]
-LETTERDIGIT    [a-zA-Z0-9:_]
+LETTERDIGIT    [a-zA-Z0-9_]
 
 %%
 
@@ -128,14 +128,25 @@ f[Aa][Ll][Ss][Ee]    { yylval.boolean=0; return BOOL_CONST; }
 ";"		     { return ';'; }
 "("                  { return '('; }
 ")"                  { return ')'; }
+"="                  { return '='; }
+"<"                  { return '<'; }
+"~"                  { return '~'; }
+","                  { return ','; }
+":"                  { return ':'; }
+"{"                  { return '{'; }
+"}"                  { return '}'; }
 
 
 {DIGIT}+             { 
 			cool_yylval.symbol=inttable.add_string(yytext);
 			return INT_CONST; 
 		     }
-self                 { return OBJECTID; }
-SELF_TYPE            { return TYPEID; }
+self                 { 
+			cool_yylval.symbol=idtable.add_string("self");
+			return OBJECTID; }
+SELF_TYPE            { 
+			cool_yylval.symbol=idtable.add_string("SELF_TYPE");
+		        return	TYPEID; }
 
 
 [a-z]{LETTERDIGIT}*       { cool_yylval.symbol=idtable.add_string(yytext); 
@@ -148,25 +159,42 @@ SELF_TYPE            { return TYPEID; }
 {NEWLINE}            { curr_lineno++; }
 
 \(\*                 {	
+			//printf("begin-->%s",yytext);
 			yy_push_state(INITIAL);
 			BEGIN(MULTILINECOMMENT); 
 		     }
 
-<MULTILINECOMMENT>[^\(]*\(\* {
+<MULTILINECOMMENT>"(*" {
+				//printf("nested begin-->%s",yytext);
 				yy_push_state(MULTILINECOMMENT);
 				BEGIN(MULTILINECOMMENT);
 			}
+<MULTILINECOMMENT>"*)"  {	
 
-<MULTILINECOMMENT>[^\*]*\*\)  {	
-			      	//printf("--->%s<---\n",yytext); 	
+				//printf("end-->%s",yytext);
 				yy_pop_state(); 
-				}
-<MULTILINECOMMENT>{NEWLINE} {curr_lineno++;}
+			}
 
-"*)"                 { cool_yylval.error_msg="Unmatched *)";
+<MULTILINECOMMENT>[^\n\*\)\(]* {
+				//printf("-->%s<---\n",yytext);
+			}
+<MULTILINECOMMENT>"(" {}
+<MULTILINECOMMENT>")" {}
+<MULTILINECOMMENT>"*" {}
+
+<MULTILINECOMMENT>{NEWLINE} {curr_lineno++;}
+"*)"                 { 
+			cool_yylval.error_msg="Unmatched *)";
 			yy_pop_state();	
 			return ERROR;
 		     }
+<MULTILINECOMMENT><<EOF>> { 
+				
+			cool_yylval.error_msg="EOF in comment";
+			yy_pop_state();	
+			return ERROR;
+		}
+
 
 
 "--"[^\n]*          {}
@@ -287,3 +315,4 @@ SELF_TYPE            { return TYPEID; }
 
 
 %%
+
