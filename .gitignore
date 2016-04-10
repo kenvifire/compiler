@@ -5,3 +5,6 @@
 */lextest.o
 */stringtab.o
 */utilities.o
+*.o
+*.out
+PA3/parser
