@@ -135,7 +135,14 @@
     %type <class_> class
     
     /* You will want to change the following line. */
-    %type <features> dummy_feature_list
+    %type <features> feature_list
+    %type <feature>  feature 
+
+    %type <expression> expression
+    %type <expressions> expression_list
+
+    %type <formal> formal
+    %type <formals> formal_list
     
     /* Precedence declarations go here. */
     
@@ -165,8 +172,70 @@
     ;
     
     /* Feature list may be empty, but no empty features in list. */
-    dummy_feature_list:		/* empty */
+    feature_list:		/* empty */
+    %empty
     {  $$ = nil_Features(); }
+    |  feature 
+    { $$ = single_Features($1); }
+    | feature_list feature
+    { $$ = append_Features($1, single_Features($2));}
+    ;
+
+    feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression_list '}' ';'
+    {  $$ = method($1, $3, $6, $8); } 
+    | OBJECTID ':' TYPEID ASSIGN expression ';'
+    { $$ = attr($1, $3, $5); }
+    | OBJECTID ':' TYPEID ';'
+    { $$ = attr($1, $3, nil_Expressions();}
+    ;
+   /* formals */
+  
+    formal_list:
+    formal  { $$ = single_Formals($1); }
+    | formal ',' formal_list 
+    { $$ = append_Formals($2, single_Formals($1)); }
+    ;
+   
+    formal: OBJECTID ASSIGN TYPEID 
+    { $$ = formal($1,$3); }
+    ;
+
+   /* expression */
+   expression_list:
+   expression: { $$ = single_Expressions($1); }
+   | expression ',' expression_list
+    { $$ = append_Expressions($2, single_Expressions($1)); }
+   | expression ';' expression_list
+   { $$ = append_Expressions($2, single_Expression2($1)); }
+
+   expression:
+   OBJECTID ASSIGN expression
+   { $$ = assign($1, $2); }
+   | expression '.' OBJECTID '(' expression_list ')'
+   { $$ = static_dispatch($1,parseResult.name, $3, $5);
+   | expression '@' TYPEID '.' OBJECTID '(' expression_list ')'
+   { $$ = dispatch($1,$3,$5,$7); }
+   | OBJECTID '(' expression_list ')' 
+   { $$ = static_dispatch(nil_Expressions(),  parseResult.name, $1, $3 ); }
+   | IF expression THEN expression ELSE expression fi
+   { $$ = cond($2, $4, $6 ); }
+   | WHILE expression LOOP expression POOL
+   { $$ = loop( $2, $4); }
+   | '{' expression_list '}' 
+   { $$ = block(expression_list); }
+   | LET OBJECTID ':' TYPEID IN expression
+   { $$ = let($2,$4, nil_Expressons(), $6); }
+   
+   
+   
+   
+  
+   
+    
+    
+   
+   
+    
     
     
     /* end of grammar */
