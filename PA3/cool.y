@@ -82,6 +82,7 @@
     
     Program ast_root;	      /* the result of the parse  */
     Classes parse_results;        /* for use in semantic analysis */
+    Expressions parse_expr;
     int omerrs = 0;               /* number of errors in lexing and parsing */
     %}
     
@@ -223,8 +224,24 @@
    { $$ = loop( $2, $4); }
    | '{' expression_list '}' 
    { $$ = block(expression_list); }
-   | LET OBJECTID ':' TYPEID IN expression
-   { $$ = let($2,$4, nil_Expressons(), $6); }
+   | LET sub_let_list IN expression
+   { parse_expr =  }
+
+
+
+  ;
+
+  sub_let_list:
+  sub_let ',' sub_let_list
+  ;
+  
+
+  sub_let:
+  OBJECTID : TYPEID 
+  { $$ = let($1,$3, nil_Expression(),}
+  
+   
+   
    
    
    
