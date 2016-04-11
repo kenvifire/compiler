@@ -165,16 +165,15 @@
     ;
     
     /* If no parent is specified, the class inherits from the Object class. */
-    class	: CLASS TYPEID '{' dummy_feature_list '}' ';'
+    class	: CLASS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,idtable.add_string("Object"),$4,
     stringtable.add_string(curr_filename)); }
-    | CLASS TYPEID INHERITS TYPEID '{' dummy_feature_list '}' ';'
+    | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
     ;
     
     /* Feature list may be empty, but no empty features in list. */
     feature_list:		/* empty */
-    %empty
     {  $$ = nil_Features(); }
     |  feature 
     { $$ = single_Features($1); }
@@ -192,9 +191,10 @@
    /* formals */
   
     formal_list:
-    formal  { $$ = single_Formals($1); }
+    formal  
+    { $$ = single_Formals($1); }
     | formal ',' formal_list 
-    { $$ = append_Formals($2, single_Formals($1)); }
+    { $$ = append_Formals($3, single_Formals($1)); }
     ;
    
     formal: OBJECTID ASSIGN TYPEID 
@@ -203,27 +203,29 @@
 
    /* expression */
    expression_list:
-   expression: { $$ = single_Expressions($1); }
+   expression 
+   { $$ = single_Expressions($1); }
    | expression ',' expression_list
-    { $$ = append_Expressions($2, single_Expressions($1)); }
+    { $$ = append_Expressions($3, single_Expressions($1)); }
    | expression ';' expression_list
-   { $$ = append_Expressions($2, single_Expression2($1)); }
+   { $$ = append_Expressions($3, single_Expression2($1)); }
 
    expression:
    OBJECTID ASSIGN expression
-   { $$ = assign($1, $2); }
+   { $$ = assign($1, $3); }
    | expression '.' OBJECTID '(' expression_list ')'
-   { $$ = static_dispatch($1,parseResult.name, $3, $5);
+   { $$ = static_dispatch($1,parseResult.name, $3, $5);}
    | expression '@' TYPEID '.' OBJECTID '(' expression_list ')'
    { $$ = dispatch($1,$3,$5,$7); }
    | OBJECTID '(' expression_list ')' 
    { $$ = static_dispatch(nil_Expressions(),  parseResult.name, $1, $3 ); }
-   | IF expression THEN expression ELSE expression fi
+   | IF expression THEN expression ELSE expression FI 
    { $$ = cond($2, $4, $6 ); }
    | WHILE expression LOOP expression POOL
    { $$ = loop( $2, $4); }
    | '{' expression_list '}' 
    { $$ = block(expression_list); }
+   /**
    | LET sub_let_list IN expression
    { parse_expr =  }
 
@@ -239,6 +241,44 @@
   sub_let:
   OBJECTID : TYPEID 
   { $$ = let($1,$3, nil_Expression(),}
+  **/
+  /** case exp **/
+  | NEW TYPEID
+  { $$ = new_($2); }
+  | ISVOID expression
+  { $$ = isvoid($2); }
+  | expression '+' expression
+  { $$ = plus($1,$3); }
+  | expression '-' expression
+  { $$ = sub($1,$3); }
+  | expression '*' expression
+  { $$ = mul($1,$3); } 
+  | expression '/' expression
+  { $$ = divide($1,$3); }
+  | '~' expression
+  { $$ = neg($2); }
+  | expression '<' expression
+  { $$ = lt($1,$3); }
+  | expression '<=' expression
+  { $$ = leq($1,$3); }
+  | expression '=' expression
+  { $$ = eq($1,$3); }
+  | NOT expression 
+  { $$ = comp($1); }
+  | '(' expression ')'
+  {  }
+  | TYPEID
+  {}
+  | OBJECTID
+  { $$ = object($1); }
+  | INT_CONST
+  { $$ = int_const($1); }
+  | STR_CONST
+  { $$ = string_const($1); }
+  | BOOL_CONST
+  { $$ = bool_const($1); } 
+
+
   
    
    
