@@ -181,12 +181,12 @@
     { $$ = append_Features($1, single_Features($2));}
     ;
 
-    feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression_list '}' ';'
+    feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
     {  $$ = method($1, $3, $6, $8); } 
     | OBJECTID ':' TYPEID ASSIGN expression ';'
     { $$ = attr($1, $3, $5); }
     | OBJECTID ':' TYPEID ';'
-    { $$ = attr($1, $3, nil_Expressions();}
+    { $$ = attr($1, $3, no_expr() );}
     ;
    /* formals */
   
@@ -211,6 +211,8 @@
    { $$ = append_Expressions($3, single_Expression2($1)); }
 
    expression:
+   
+  /**
    OBJECTID ASSIGN expression
    { $$ = assign($1, $3); }
    | expression '.' OBJECTID '(' expression_list ')'
@@ -225,6 +227,8 @@
    { $$ = loop( $2, $4); }
    | '{' expression_list '}' 
    { $$ = block(expression_list); }
+
+   **/
    /**
    | LET sub_let_list IN expression
    { parse_expr =  }
@@ -243,7 +247,7 @@
   { $$ = let($1,$3, nil_Expression(),}
   **/
   /** case exp **/
-  | NEW TYPEID
+   NEW TYPEID
   { $$ = new_($2); }
   | ISVOID expression
   { $$ = isvoid($2); }
@@ -263,12 +267,14 @@
   { $$ = leq($1,$3); }
   | expression '=' expression
   { $$ = eq($1,$3); }
+  /**
   | NOT expression 
   { $$ = comp($1); }
+   **/
   | '(' expression ')'
-  {  }
+  {  $$ = $2; }
   | TYPEID
-  {}
+  {  $$ = no_expr(); }
   | OBJECTID
   { $$ = object($1); }
   | INT_CONST
