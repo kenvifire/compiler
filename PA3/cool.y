@@ -176,17 +176,17 @@
     /* Feature list may be empty, but no empty features in list. */
     feature_list:		/* empty */
     {  $$ = nil_Features(); }
-    |  feature ';'
+    |  feature 
     { $$ = single_Features($1); }
-    | feature ';' feature_list
-    { $$ = append_Features($3, single_Features($1));}
+    |  feature_list  feature
+    { $$ = append_Features($1, single_Features($2));}
     ;
 
-    feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression '}' 
+    feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression '}'  ';'
     {  $$ = method($1, $3, $6, $8); } 
-    | OBJECTID ':' TYPEID ASSIGN expression 
+    | OBJECTID ':' TYPEID ASSIGN expression  ';'
     { $$ = attr($1, $3, $5); }
-    | OBJECTID ':' TYPEID
+    | OBJECTID ':' TYPEID ';'
     { $$ = attr($1, $3, no_expr() );}
     ;
    /* formals */
@@ -218,7 +218,9 @@
    expression:
     {  $$ = no_expr(); }
    
-   | 
+   | OBJECTID ASSIGN expression
+   { $$ = assign($1,$3); }
+   |
   /**
    OBJECTID ASSIGN expression
    { $$ = assign($1, $3); }
