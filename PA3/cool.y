@@ -84,6 +84,7 @@
     Classes parse_results;        /* for use in semantic analysis */
     Expressions parse_expr;
     int omerrs = 0;               /* number of errors in lexing and parsing */
+    #define YYDEBUG 1
     %}
     
     /* A union of all the types that can be the result of parsing actions. */
@@ -139,8 +140,8 @@
     %type <features> feature_list
     %type <feature>  feature 
 
-    %type <expression> expression
     %type <expressions> expression_list
+    %type <expression> expression
 
     %type <formal> formal
     %type <formals> formal_list
@@ -175,34 +176,38 @@
     /* Feature list may be empty, but no empty features in list. */
     feature_list:		/* empty */
     {  $$ = nil_Features(); }
-    |  feature 
+    |  feature ';'
     { $$ = single_Features($1); }
-    | feature_list feature
-    { $$ = append_Features($1, single_Features($2));}
+    | feature ';' feature_list
+    { $$ = append_Features($3, single_Features($1));}
     ;
 
-    feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression '}' ';'
+    feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression '}' 
     {  $$ = method($1, $3, $6, $8); } 
-    | OBJECTID ':' TYPEID ASSIGN expression ';'
+    | OBJECTID ':' TYPEID ASSIGN expression 
     { $$ = attr($1, $3, $5); }
-    | OBJECTID ':' TYPEID ';'
+    | OBJECTID ':' TYPEID
     { $$ = attr($1, $3, no_expr() );}
     ;
    /* formals */
   
     formal_list:
+    { $$ = nil_Formals();}
+    |
     formal  
     { $$ = single_Formals($1); }
     | formal ',' formal_list 
     { $$ = append_Formals($3, single_Formals($1)); }
     ;
    
-    formal: OBJECTID ASSIGN TYPEID 
+    formal: OBJECTID ':' TYPEID 
     { $$ = formal($1,$3); }
     ;
 
    /* expression */
    expression_list:
+   { $$ = nil_Expressions(); }
+   |
    expression 
    { $$ = single_Expressions($1); }
    | expression ',' expression_list
@@ -211,7 +216,9 @@
    { $$ = append_Expressions($3, single_Expression2($1)); }
 
    expression:
+    {  $$ = no_expr(); }
    
+   | 
   /**
    OBJECTID ASSIGN expression
    { $$ = assign($1, $3); }
