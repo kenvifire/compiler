@@ -213,31 +213,34 @@
    | expression ',' expression_list
     { $$ = append_Expressions($3, single_Expressions($1)); }
    | expression ';' expression_list
-   { $$ = append_Expressions($3, single_Expression2($1)); }
+   { $$ = append_Expressions($3, single_Expressions($1)); }
 
    expression:
+   /*
     {  $$ = no_expr(); }
    
-   | OBJECTID ASSIGN expression
+   | 
+   */
+   OBJECTID ASSIGN expression
    { $$ = assign($1,$3); }
    |
-  /**
    OBJECTID ASSIGN expression
    { $$ = assign($1, $3); }
+   /*
    | expression '.' OBJECTID '(' expression_list ')'
-   { $$ = static_dispatch($1,parseResult.name, $3, $5);}
+   { $$ = static_dispatch($1,parse_results.name, $3, $5);}
    | expression '@' TYPEID '.' OBJECTID '(' expression_list ')'
    { $$ = dispatch($1,$3,$5,$7); }
    | OBJECTID '(' expression_list ')' 
-   { $$ = static_dispatch(nil_Expressions(),  parseResult.name, $1, $3 ); }
+   { $$ = static_dispatch(nil_Expressions(),  parse_results.name, $1, $3 ); }
+   */
    | IF expression THEN expression ELSE expression FI 
    { $$ = cond($2, $4, $6 ); }
    | WHILE expression LOOP expression POOL
    { $$ = loop( $2, $4); }
    | '{' expression_list '}' 
-   { $$ = block(expression_list); }
+   { $$ = block($2); }
 
-   **/
    /**
    | LET sub_let_list IN expression
    { parse_expr =  }
@@ -256,7 +259,7 @@
   { $$ = let($1,$3, nil_Expression(),}
   **/
   /** case exp **/
-   NEW TYPEID
+   | NEW TYPEID
   { $$ = new_($2); }
   | ISVOID expression
   { $$ = isvoid($2); }
