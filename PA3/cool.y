@@ -10,7 +10,7 @@
   #include "utilities.h"
   
   extern char *curr_filename;
-  
+  extern char *yytext;
   
   /* Locations */
   #define YYLTYPE int              /* the type of locations */
@@ -157,34 +157,47 @@
     ;
     
     class_list
-    : class			/* single class */
+    : 
+    /*
+    error ';' { yyerror(yytext);  }
+    | 
+   */
+    class ';' 			/* single class */
     { $$ = single_Classes($1);
     parse_results = $$; }
-    | class_list class	/* several classes */
+    | class_list class ';'	/* several classes */
     { $$ = append_Classes($1,single_Classes($2)); 
     parse_results = $$; }
+    /*
+    | class_list error ';' { yyerror(yytext);}
+    */
     ;
     
     /* If no parent is specified, the class inherits from the Object class. */
-    class	: CLASS TYPEID '{' feature_list '}' ';'
+    class	: 
+    CLASS TYPEID '{' feature_list '}' 
     { $$ = class_($2,idtable.add_string("Object"),$4,
     stringtable.add_string(curr_filename)); }
-    | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
+    | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' 
     { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
+    /*
+    |  error '}'  {yyerror(yytext);} 
+
+    */
     ;
     
     /* Feature list may be empty, but no empty features in list. */
     feature_list:		/* empty */
     {  $$ = nil_Features(); }
-    |  feature 
+    |  feature  
     { $$ = single_Features($1); }
-    |  feature_list  feature
+    |  feature_list  feature 
     { $$ = append_Features($1, single_Features($2));}
     ;
 
     feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression '}'  ';'
     {  $$ = method($1, $3, $6, $8); } 
-    | OBJECTID ':' TYPEID ASSIGN expression  ';'
+    | OBJECTID ':' TYPEID ASSIGN expression ';'
     { $$ = attr($1, $3, $5); }
     | OBJECTID ':' TYPEID ';'
     { $$ = attr($1, $3, no_expr() );}
