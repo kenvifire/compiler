@@ -82,7 +82,7 @@
     
     Program ast_root;	      /* the result of the parse  */
     Classes parse_results;        /* for use in semantic analysis */
-    Expressions parse_expr;
+    Expression let_expr;
     int omerrs = 0;               /* number of errors in lexing and parsing */
     #define YYDEBUG 1
     %}
@@ -139,12 +139,14 @@
     /* You will want to change the following line. */
     %type <features> feature_list
     %type <feature>  feature 
+    %type <features> field_list
 
     %type <expressions> expression_list
     %type <expression> expression
 
     %type <formal> formal
     %type <formals> formal_list
+
     
     /* Precedence declarations go here. */
     
@@ -189,19 +191,21 @@
     /* Feature list may be empty, but no empty features in list. */
     feature_list:		/* empty */
     {  $$ = nil_Features(); }
-    |  feature  
+    |  feature 
     { $$ = single_Features($1); }
-    |  feature_list  feature 
-    { $$ = append_Features($1, single_Features($2));}
+    |  feature_list ';' feature 
+    { $$ = append_Features($1, single_Features($3));}
     ;
 
     feature:  OBJECTID  '(' formal_list ')' ':' TYPEID '{' expression '}'  ';'
     {  $$ = method($1, $3, $6, $8); } 
-    | OBJECTID ':' TYPEID ASSIGN expression ';'
+    | OBJECTID ':' TYPEID ASSIGN expression 
     { $$ = attr($1, $3, $5); }
     | OBJECTID ':' TYPEID ';'
     { $$ = attr($1, $3, no_expr() );}
     ;
+
+    
    /* formals */
   
     formal_list:
@@ -253,25 +257,16 @@
    { $$ = loop( $2, $4); }
    | '{' expression_list '}' 
    { $$ = block($2); }
-
-   /**
-   | LET sub_let_list IN expression
-   { parse_expr =  }
-
-
-
-  ;
-
-  sub_let_list:
-  sub_let ',' sub_let_list
-  ;
-  
-
-  sub_let:
-  OBJECTID : TYPEID 
-  { $$ = let($1,$3, nil_Expression(),}
-  **/
-  /** case exp **/
+   | LET field_list ',' OBJECTID ':' TYPEID  IN expression
+   {  
+      $$ = let($4, $6, no_expr(), $8);
+      let_expr = $$;
+   }
+   | LET field_list ',' OBJECTID ':' TYPEID ASSIGN expression IN expression
+   {  
+      $$ = let($4, $6, $8, $10); 
+      let_expr = $$;
+   }
    | NEW TYPEID
   { $$ = new_($2); }
   | ISVOID expression
@@ -308,6 +303,28 @@
   { $$ = string_const($1); }
   | BOOL_CONST
   { $$ = bool_const($1); } 
+  ;
+
+  field_list:  
+  /** empty **/ 
+  |OBJECTID ':' TYPEID ','
+  { $$ = let($1,$3,no_expr(),let_expr);  }
+  |OBJECTID ':' TYPEID ASSIGN expression ','
+  { $$ = let($1,$3,$5, let_expr); } 
+  |OBJECTID ':' TYPEID ',' field_list
+  { 
+    $$ = let($1,$3,no_expr(),let_expr);
+    let_expr=$$;
+   }
+
+  | OBJECTID ':' TYPEID ASSIGN expression ',' field_list
+  { 
+   $$ = let($1,$3,$5,let_expr);
+   let_expr=$$;
+   }
+   ;
+
+  
 
 
   
