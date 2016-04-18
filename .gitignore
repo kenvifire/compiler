@@ -8,3 +8,6 @@
 *.o
 *.out
 PA3/parser
+tools/*.iml
+tools/out/*
+tools/.idea
