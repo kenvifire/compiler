@@ -1,6 +1,5 @@
 package com.itluobo.compiler;
 
-import org.graphstream.graph.Graph;
 
 /**
  * Created by kenvi on 16/4/18.
@@ -8,12 +7,15 @@ import org.graphstream.graph.Graph;
 public class Main {
 
     public static void main(String[] args) {
-        SingleInputProcessor sip = new SingleInputProcessor();
+        String input = "AB";
 
-        State state = sip.process("A");
+        int i = 0;
 
-        Graph graph = state.dump("test");
-        graph.display();
+        while(i < input.length()) {
+
+            i++;
+        }
+
     }
 
 }
