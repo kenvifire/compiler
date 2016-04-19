@@ -9,7 +9,7 @@ import java.util.Stack;
 public class Main {
 
     public static void main(String[] args) {
-        String input = "AB";
+        String input = "(AB)C";
 
         int i = 0;
         SingleInputProcessor sip = new SingleInputProcessor();
@@ -30,9 +30,14 @@ public class Main {
                 if(top != '(') {
                     throw  new RuntimeException("unexpected token:" + top);
                 }
+                operatorStack.pop();
             }else {
-                operandStack.push(sip.process(c+""));
-                if (lastChar != null && TokenUtils.isNotToken(lastChar)) {
+                operandStack.push(sip.process(c + ""));
+                if (lastChar != null && TokenUtils.isNotToken(lastChar) || lastChar==')') {
+                    State stateB = operandStack.pop();
+                    State stateA = operandStack.pop();
+                    operandStack.push(State.andState(stateA, stateB));
+                }else if(lastChar != null && lastChar =='|') {
                     State stateB = operandStack.pop();
                     State stateA = operandStack.pop();
                     operandStack.push(State.orState(stateA, stateB));
