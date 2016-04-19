@@ -15,6 +15,7 @@ public class State {
     private static Set<String> inputSet = new HashSet<String>();
     private StateTypeEnum type;
     private int state;
+    private State end;
     private List<Transition> transitionList = new ArrayList<Transition>();
     private boolean isVisited;
 
@@ -103,6 +104,67 @@ public class State {
         return graph;
     }
 
+    public static State andState(State start, State end) {
+        if(start == null)  return end;
+        if(end == null) return start;
 
+        Transition transition = new Transition();
+        transition.setType(TransitionType.E_CLOSURE);
+        transition.setBeginState(start.getEnd());
+        transition.setEndState(end);
+        start.end.addTransition(transition);
+        return start;
 
+    }
+
+    public static State orState(State statA, State statB) {
+        if(statA == null) return statB;
+        if(statB == null) return statA;
+
+        State init = new State();
+        init.setType(StateTypeEnum.START);
+
+        //init --> A
+        Transition aTrans = new Transition();
+        aTrans.setType(TransitionType.E_CLOSURE);
+        aTrans.setBeginState(init);
+        aTrans.setEndState(statA);
+        init.addTransition(aTrans);
+
+        //init -->B
+        Transition bTrans = new Transition();
+        bTrans.setType(TransitionType.E_CLOSURE);
+        bTrans.setBeginState(init);
+        bTrans.setEndState(statB);
+        init.addTransition(bTrans);
+
+        State end = new State();
+        end.setType(StateTypeEnum.ACCEPT);
+
+        // A-->end
+        Transition aEndTrans = new Transition();
+        aEndTrans.setType(TransitionType.E_CLOSURE);
+        aEndTrans.setBeginState(statA.end);
+        aEndTrans.setEndState(end);
+        statA.end.addTransition(aEndTrans);
+
+        //B-->
+        Transition bEndTrans = new Transition();
+        bEndTrans.setType(TransitionType.E_CLOSURE);
+        bEndTrans.setType(TransitionType.E_CLOSURE);
+        bEndTrans.setBeginState(statB.end);
+        bEndTrans.setEndState(end);
+        statB.end.addTransition(bEndTrans);
+
+        return init;
+
+    }
+
+    public State getEnd() {
+        return end;
+    }
+
+    public void setEnd(State end) {
+        this.end = end;
+    }
 }

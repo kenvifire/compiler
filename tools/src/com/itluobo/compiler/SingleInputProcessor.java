@@ -35,6 +35,8 @@ public class SingleInputProcessor implements InputProcessor{
         inputState.addTransition(inputTrans);
         acceptState.setType(StateTypeEnum.ACCEPT);
 
+        init.setEnd(acceptState);
+
         return init;
     }
 }
