@@ -9,7 +9,7 @@ import java.util.Stack;
 public class Main {
 
     public static void main(String[] args) {
-        String input = "（A|B)";
+        String input = "((A|B)CD)E";
 
         int i = 0;
         SingleInputProcessor sip = new SingleInputProcessor();
@@ -32,15 +32,15 @@ public class Main {
                 operatorStack.push('&');
             }
             else if(currentChar.getCh() == ')'){//pop until (, calc
-                while(!operatorStack.isEmpty() && operatorStack.pop() != ')')  {
-                    Character operator = operatorStack.pop();
+                Character operator = null;
+                while(!operatorStack.isEmpty() && (operator = operatorStack.pop()) != '(')  {
                     State oprandB = operandStack.pop();
                     State oprandA = operandStack.pop();
 
                     if(operator == '|') operandStack.push(State.orState(oprandA, oprandB));
                     if(operator == '&') operandStack.push(State.andState(oprandA, oprandB));
                 }
-                if(nextChar != null && TokenUtils.isNotToken(currentChar.getCh())) {
+                if(nextChar != CharWrapper.EOF && TokenUtils.isNotToken(nextChar.getCh())) {
                     inputWrapper.pushBack('&');
                 }
             }else {
