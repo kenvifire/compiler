@@ -9,42 +9,57 @@ import java.util.Stack;
 public class Main {
 
     public static void main(String[] args) {
-        String input = "(AB)C";
+        String input = "（A|B)";
 
         int i = 0;
         SingleInputProcessor sip = new SingleInputProcessor();
         StarInputProcessor starInputProcessor = new StarInputProcessor();
         Stack<Character> operatorStack = new Stack<Character>();
         Stack<State> operandStack = new Stack<State>();
-        Character lastChar = null;
-        while(i < input.length()) {
-            char c = input.charAt(i);
-            if(c == '*') { //calc
+        InputWrapper inputWrapper = new InputWrapper(input);
+        CharWrapper currentChar = null;
+        CharWrapper nextChar = null;
+        while(inputWrapper.hasMore()) {
+            currentChar = inputWrapper.getNextChar();
+            nextChar = inputWrapper.peek();
+            if(currentChar.getCh() == '*') { //calc
                 operandStack.push(starInputProcessor.process(operandStack.pop() + ""));
-            }else if (c == '|') {
+            }else if (currentChar.getCh() == '|') {
                 operatorStack.push('|');
-            }else if( c == '(') {
+            }else if( currentChar.getCh() == '(') {
                 operatorStack.push('(');
-            }else if(c == ')'){
-                char top = operatorStack.peek();
-                if(top != '(') {
-                    throw  new RuntimeException("unexpected token:" + top);
+            }else if( currentChar.getCh() == '&') {
+                operatorStack.push('&');
+            }
+            else if(currentChar.getCh() == ')'){//pop until (, calc
+                while(!operatorStack.isEmpty() && operatorStack.pop() != ')')  {
+                    Character operator = operatorStack.pop();
+                    State oprandB = operandStack.pop();
+                    State oprandA = operandStack.pop();
+
+                    if(operator == '|') operandStack.push(State.orState(oprandA, oprandB));
+                    if(operator == '&') operandStack.push(State.andState(oprandA, oprandB));
                 }
-                operatorStack.pop();
+                if(nextChar != null && TokenUtils.isNotToken(currentChar.getCh())) {
+                    inputWrapper.pushBack('&');
+                }
             }else {
-                operandStack.push(sip.process(c + ""));
-                if (lastChar != null && TokenUtils.isNotToken(lastChar) || lastChar==')') {
-                    State stateB = operandStack.pop();
-                    State stateA = operandStack.pop();
-                    operandStack.push(State.andState(stateA, stateB));
-                }else if(lastChar != null && lastChar =='|') {
-                    State stateB = operandStack.pop();
-                    State stateA = operandStack.pop();
-                    operandStack.push(State.orState(stateA, stateB));
+                operandStack.push(sip.process(currentChar.getCh() + ""));
+                if (nextChar != CharWrapper.EOF && TokenUtils.isNotToken(nextChar.getCh())) {
+                    inputWrapper.pushBack('&');
                 }
             }
-            lastChar = c;
-            i++;
+
+
+        }
+
+        while(!operatorStack.isEmpty())  {
+            Character operator = operatorStack.pop();
+            State oprandB = operandStack.pop();
+            State oprandA = operandStack.pop();
+
+            if(operator == '|') operandStack.push(State.orState(oprandA, oprandB));
+            if(operator == '&') operandStack.push(State.andState(oprandA, oprandB));
         }
 
         operandStack.pop().dump("test").display();

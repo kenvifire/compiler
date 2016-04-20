@@ -11,7 +11,7 @@ public class SingleInputProcessor implements InputProcessor{
     @Override
     public State process(String input) {
         if(input.length() != 1) {
-            throw new RuntimeException("invalid input for singleInputProcessor");
+            throw new RuntimeException("invalid input for singleInputProcessor:" + input);
         }
         State.addInput(input);
         State init = new State();

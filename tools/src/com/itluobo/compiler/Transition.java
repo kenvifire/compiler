@@ -48,4 +48,6 @@ public class Transition {
     public void setType(TransitionType type) {
         this.type = type;
     }
+
+
 }

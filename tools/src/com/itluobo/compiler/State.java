@@ -52,6 +52,12 @@ public class State {
     }
 
     public void addTransition(Transition transition) {
+        if(transition.getBeginState().getState() != state)  {
+            throw new RuntimeException("can not add transition");
+        }
+        if(transitionList.contains(transition)) {
+            throw new RuntimeException("duplicate transition");
+        }
         transitionList.add(transition);
     }
 
@@ -85,7 +91,13 @@ public class State {
 
         while(!queue.isEmpty()) {
             State front = queue.poll();
+            if(front.isVisited) {
+                continue;
+            }
+            System.out.println("front:" + front.getState() + ",status:" + front.isVisited);
             for (Transition transition: front.getTransitionList()) {
+                System.out.println(String.format("\tadd adge[%s-->%s,%s]from state[%s] ", transition.getBeginState().getState(),transition.getEndState().getState(), transition.getInput()
+                    ,front.getState()));
                 Edge edge =  graph.addEdge(transition.toString(), transition.getBeginState().getState() + "",
                         transition.getEndState().getState() + "", true);
                 Sprite sprite = name2SpringMap.get(transition.getInput());
@@ -113,6 +125,9 @@ public class State {
         transition.setBeginState(start.getEnd());
         transition.setEndState(end);
         start.end.addTransition(transition);
+
+        start.end = end.end;
+
         return start;
 
     }
@@ -155,6 +170,8 @@ public class State {
         bEndTrans.setBeginState(statB.end);
         bEndTrans.setEndState(end);
         statB.end.addTransition(bEndTrans);
+
+        init.end = end;
 
         return init;
 

@@ -5,6 +5,6 @@ package com.itluobo.compiler;
  */
 public class TokenUtils {
     public static boolean isNotToken(Character c) {
-        return  c!= null && c != '*' && c != '(' && c != ')' && c != '|';
+        return   c != '*' && c != '(' && c != ')' && c != '|';
     }
 }
