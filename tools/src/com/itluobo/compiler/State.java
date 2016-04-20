@@ -18,6 +18,8 @@ public class State {
     private State end;
     private List<Transition> transitionList = new ArrayList<Transition>();
     private boolean isVisited;
+    private String tag;
+    private static Map<Integer, State> stateMap = new HashMap<Integer, State>();
 
     static {
         inputSet.add("E_CLOSURE");
@@ -25,6 +27,8 @@ public class State {
 
     public State() {
         this.state = stateCount++;
+        System.out.println("new state:" + state);
+        stateMap.put(this.state, this);
     }
 
     public StateTypeEnum getType() {
@@ -76,14 +80,9 @@ public class State {
     public Graph dump(String name) {
         Graph graph = new SingleGraph(name);
         for (int i= 0; i < stateCount; i++) {
-            graph.addNode( i + "").addAttribute("ui.label", i);
+            graph.addNode( i + "").addAttribute("ui.label", stateMap.get(i).getId());
         }
 
-        SpriteManager sman = new SpriteManager(graph);
-        Map<String, Sprite> name2SpringMap = new HashMap<String, Sprite>();
-        for(String input : inputSet) {
-            name2SpringMap.put(input, sman.addSprite(input));
-        }
 
         Queue<State> queue = new ArrayDeque<State>();
 
@@ -100,8 +99,6 @@ public class State {
                     ,front.getState()));
                 Edge edge =  graph.addEdge(transition.toString(), transition.getBeginState().getState() + "",
                         transition.getEndState().getState() + "", true);
-                Sprite sprite = name2SpringMap.get(transition.getInput());
-                sprite.attachToEdge(edge.getId());
 
                 edge.addAttribute("ui.label",transition.getInput());
 
@@ -175,6 +172,17 @@ public class State {
 
         return init;
 
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public String getId() {
+        return this.getState() + '[' + tag + ']';
+    }
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     public State getEnd() {

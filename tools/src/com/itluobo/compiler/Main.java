@@ -9,7 +9,7 @@ import java.util.Stack;
 public class Main {
 
     public static void main(String[] args) {
-        String input = "((A|B)CD)E";
+        String input = "A*";
 
         int i = 0;
         SingleInputProcessor sip = new SingleInputProcessor();
@@ -23,7 +23,7 @@ public class Main {
             currentChar = inputWrapper.getNextChar();
             nextChar = inputWrapper.peek();
             if(currentChar.getCh() == '*') { //calc
-                operandStack.push(starInputProcessor.process(operandStack.pop() + ""));
+                operandStack.push(starInputProcessor.process(operandStack.pop()));
             }else if (currentChar.getCh() == '|') {
                 operatorStack.push('|');
             }else if( currentChar.getCh() == '(') {
