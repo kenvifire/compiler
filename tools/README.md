@@ -11,6 +11,6 @@
     
 	The result for `A|B`
 
-	![A|B](nfa.png)
+	![A|B](/nfa.png)
     
 
