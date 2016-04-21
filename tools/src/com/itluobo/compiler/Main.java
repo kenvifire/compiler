@@ -9,7 +9,7 @@ import java.util.Stack;
 public class Main {
 
     public static void main(String[] args) {
-        String input = "A|B";
+        String input = "A|(BC)";
 
         int i = 0;
         SingleInputProcessor sip = new SingleInputProcessor();
@@ -25,11 +25,28 @@ public class Main {
             if(currentChar.getCh() == '*') { //calc
                 operandStack.push(starInputProcessor.process(operandStack.pop()));
             }else if (currentChar.getCh() == '|') {
-                operatorStack.push('|');
+                if(nextChar != CharWrapper.EOF && TokenUtils.isNotToken(nextChar.getCh())) {
+                    State oprandA = operandStack.pop();
+                    State oprandB = sip.process(inputWrapper.getNextChar().getCh() + "");
+                    operandStack.push(State.orState(oprandA, oprandB));
+                }else if(nextChar != CharWrapper.EOF) {
+                    operatorStack.push('|');
+                }else {
+                    throw new RuntimeException("unterminated expression");
+                }
+
             }else if( currentChar.getCh() == '(') {
                 operatorStack.push('(');
             }else if( currentChar.getCh() == '&') {
-                operatorStack.push('&');
+                if(nextChar != CharWrapper.EOF && TokenUtils.isNotToken(nextChar.getCh())) {
+                    State oprandA = operandStack.pop();
+                    State oprandB = sip.process(inputWrapper.getNextChar().getCh() + "");
+                    operandStack.push(State.andState(oprandA, oprandB));
+                }else if(nextChar != CharWrapper.EOF) {
+                    operatorStack.push('&');
+                }else {
+                    throw new RuntimeException("unterminated expression");
+                }
             }
             else if(currentChar.getCh() == ')'){//pop until (, calc
                 Character operator = null;
@@ -62,7 +79,10 @@ public class Main {
             if(operator == '&') operandStack.push(State.andState(oprandA, oprandB));
         }
 
-        operandStack.pop().dump("test").display();
+        State result = operandStack.pop();
+        result.setTag("=====>>>");
+        result.getEnd().setTag("<<<<===");
+        result.dump("test").display();
 
     }
 
