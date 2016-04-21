@@ -10,5 +10,6 @@
 ### Demo
     
 	The result for `A|B`
-       ![img](https://raw.githubusercontent.com/kenvifire/compiler/master/tools/nfa.png)
+
+![img](https://raw.githubusercontent.com/kenvifire/compiler/master/tools/nfa.png)
 
