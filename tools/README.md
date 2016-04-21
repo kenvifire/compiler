@@ -11,6 +11,5 @@
     
 	The result for `A|B`
 
-	![A|B](/nfa.png)
-    
+        <img src="https://github.com/kenvifire/compiler/blob/master/tools/nfa.png?raw=true"/>
 
